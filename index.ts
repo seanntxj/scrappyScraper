@@ -6,18 +6,17 @@ import carousellScraper from "./carousellScraper";
   carousellScraper(
     "https://www.carousell.com.my/search/Pixel%206?addRecent=false"
   ).then((results) => {
+    console.log(results);
     type Condition = {
       nameBlacklist: Array<string>;
       nameMustInclude: Array<string>;
       priceRange: { min: 0; max: 10000 };
-      minLikes: 0;
     };
 
     const conditions: Condition = {
       nameBlacklist: [],
       nameMustInclude: [],
       priceRange: { min: 0, max: 10000 },
-      minLikes: 0,
     };
 
     const filters = [
@@ -34,8 +33,6 @@ import carousellScraper from "./carousellScraper";
       (listing: Listing) =>
         listing.price < conditions.priceRange.min ||
         listing.price > conditions.priceRange.max,
-      (listing: Listing) =>
-        listing.likes != undefined ? listing.likes < conditions.minLikes : true,
     ];
 
     const filteredResults = filterResults(results, filters);

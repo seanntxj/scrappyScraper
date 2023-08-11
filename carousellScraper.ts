@@ -4,70 +4,83 @@ import { Listing } from "./types";
 const carousellScraper = async (link: string): Promise<Array<Listing>> => {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
-
   await page.goto(link);
 
-  return await page.$$eval(
-    'div[data-testid^="listing-card"]',
-    (cards: any[]) => {
-      return cards.map((card) => {
-        const name = card.querySelector(
-          "p.D_pn.D_pk.D_po.D_ps.D_pv.D_py.D_p_.D_pw.D_pE"
-        ).textContent as string;
+  const listings: Array<Listing> = [];
+  const cards = await page.$$('div[data-testid^="listing-card"]');
 
-        const rawRecentness = card.querySelector(
-          "p.D_pn.D_pi.D_po.D_ps.D_pu.D_py.D_p_.D_Az.D_pF"
-        ).textContent as string;
+  for (const card of cards) {
+    const paragraphContents = await card.$$eval("p", (paragraphs: any[]) =>
+      paragraphs.map((p) => p.textContent)
+    );
 
-        const unitToDays = {
-          day: 1,
-          days: 1,
-          month: 30,
-          months: 30,
-        };
+    const convertCarousellSincePostedToDays = (rawRecentness: string) => {
+      const unitToDays: { [key: string]: number } = {
+        day: 1,
+        days: 1,
+        month: 30,
+        months: 30,
+      };
 
-        const splitRecentness = rawRecentness.split(" ");
-        const quantity = parseInt(splitRecentness[0]);
-        const unit = splitRecentness[1];
+      const splitRecentness = rawRecentness.split(" ");
+      const quantity = parseInt(splitRecentness[0]);
+      const unit = splitRecentness[1];
 
-        const daysSincePosted = quantity * (unitToDays[unit] || 1);
+      return quantity * (unitToDays[unit] || 1);
+    };
 
-        const price = 1;
-        // parseFloat(
-        //   card
-        //     .querySelector("p.D_pn.D_pk.D_po.D_ps.D_pu.D_py.D_pA.D_pC")
-        //     .textContent.replace(/\D/g, "")
-        // );
+    const isThirdTag = (thirdParagraphContent: string | null) => {
+      return (
+        thirdParagraphContent === "Protection" ||
+        thirdParagraphContent === "InstantBuy"
+      );
+    };
 
-        const tagElements = card.querySelectorAll(
-          "p.D_pn.D_pi.D_po.D_ps.D_pu.D_py.D_p_.D_pE"
-        );
+    const convertPriceToFloat = (paragraphContent: string | null) => {
+      if (paragraphContent) {
+        return parseFloat(paragraphContent.replace(/\D/g, ""));
+      }
+      return 0;
+    };
 
-        const tags: string[] = [];
+    const getTags = (
+      paragraphContents: Array<string | null>
+    ): Array<string> => {
+      const tags: Array<string> = [];
+      for (const paragraphContent of paragraphContents) {
+        paragraphContent ? tags.push(paragraphContent) : null;
+      }
+      return tags;
+    };
 
-        tagElements.forEach((el: Element) => {
-          if (typeof el.textContent === "string" && el.textContent !== "") {
-            tags.push(el.textContent);
-          }
-        });
+    const listing: Listing = {
+      sellerName: paragraphContents[0] ? paragraphContents[0] : undefined,
+      daysSincePosted: paragraphContents[1]
+        ? convertCarousellSincePostedToDays(paragraphContents[1])
+        : undefined,
+      tags: isThirdTag(paragraphContents[2])
+        ? getTags([
+            paragraphContents[2],
+            paragraphContents[paragraphContents.length - 2],
+            paragraphContents[paragraphContents.length - 1],
+          ])
+        : getTags([
+            paragraphContents[paragraphContents.length - 2],
+            paragraphContents[paragraphContents.length - 1],
+          ]),
+      name: isThirdTag(paragraphContents[2])
+        ? paragraphContents[3] ?? "Err"
+        : paragraphContents[2] ?? "Err",
+      price: isThirdTag(paragraphContents[2])
+        ? convertPriceToFloat(paragraphContents[4])
+        : convertPriceToFloat(paragraphContents[3]),
+    };
 
-        const likes =
-          parseInt(
-            card.querySelector("span.D_pn.D_pi.D_po.D_ps.D_pv.D_py.D_p_.D_pE")
-              ?.textContent,
-            10
-          ) ?? 0;
+    listings.push(listing);
+  }
 
-        return {
-          name: name,
-          price: price,
-          daysSincePosted: daysSincePosted,
-          tags: tags,
-          likes: likes,
-        };
-      });
-    }
-  );
+  await browser.close();
+  return listings;
 };
 
 export default carousellScraper;

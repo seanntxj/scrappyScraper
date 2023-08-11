@@ -7,6 +7,7 @@ import puppeteer from "puppeteer";
   await page.goto("https://www.carousell.com.my/search/Pixel?addRecent=true");
 
   const cards = await page.$$('div[data-testid^="listing-card"]');
+
   for (const card of cards) {
     const paragraphContents = await card.$$eval("p", (paragraphs) =>
       paragraphs.map((p) => p.textContent)
