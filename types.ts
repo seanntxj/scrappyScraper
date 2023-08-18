@@ -3,7 +3,7 @@ export type Listing = {
   price: number;
   sellerName?: string;
   location?: string;
-  daysSincePosted?: number;
+  timeStamp?: string;
   tags?: Array<any>;
   likes?: number;
 };

@@ -1,10 +1,9 @@
-import { sampleListings } from "./sample";
 import { Listing } from "./types";
 import carousellScraper from "./carousellScraper";
 
 (async () => {
   carousellScraper(
-    "https://www.carousell.com.my/search/Pixel%206?addRecent=false"
+    "https://www.carousell.com.my/search/iPhone 14 Pro?addRecent=false&canChangeKeyword=false&includeSuggestions=false&sort_by=3"
   ).then((results) => {
     console.log(results);
     type Condition = {

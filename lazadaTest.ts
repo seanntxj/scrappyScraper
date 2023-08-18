@@ -7,10 +7,13 @@ import puppeteer from "puppeteer";
   await page.setUserAgent(
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36"
   );
-  await page.goto("https://www.mudah.my/malaysia/for-sale?q=Samsung");
+  await page.goto("https://www.lazada.com.my/catalog/?q=iPhone");
+  // await page.waitForSelector('div[data-qa-locator^="product"]', {
+  //   timeout: 30_000,
+  // });
 
   const cards = await page.$$eval(
-    'div[data-qa-locator^="general"]',
+    'div[data-qa-locator^="product"]',
     (listingsHTML) => {
       return listingsHTML.map((listingHTML) => {
         const isFirstItemListingName = (item: string) => {
@@ -24,17 +27,18 @@ import puppeteer from "puppeteer";
           return 0;
         };
 
-        const combinedListingDetails = listingHTML.innerText.trim().split("\n");
-        // const listing: Listing = {
-        //   name: isFirstItemListingName(combinedListingDetails[0])
-        //     ? combinedListingDetails[0]
-        //     : combinedListingDetails[1],
-        //   price: isFirstItemListingName(combinedListingDetails[0])
-        //     ? convertPriceToFloat(combinedListingDetails[1])
-        //     : convertPriceToFloat(combinedListingDetails[2]),
-        //   location: combinedListingDetails[combinedListingDetails.length - 1],
-        // };
-        return combinedListingDetails;
+        const listingDetailsArr = listingHTML.innerText.trim().split("\n");
+        const listing: Listing = {
+          name: isFirstItemListingName(listingDetailsArr[0])
+            ? listingDetailsArr[0]
+            : listingDetailsArr[1],
+          price: isFirstItemListingName(listingDetailsArr[0])
+            ? convertPriceToFloat(listingDetailsArr[1])
+            : convertPriceToFloat(listingDetailsArr[2]),
+          location: listingDetailsArr[listingDetailsArr.length - 1],
+        };
+
+        return listingDetailsArr;
       });
     }
   );

@@ -4,83 +4,80 @@ import { Listing } from "./types";
 const carousellScraper = async (link: string): Promise<Array<Listing>> => {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
+  const listingsHTMLContainer = 'div[data-testid^="listing"]';
   await page.goto(link);
+  await page.waitForSelector(listingsHTMLContainer, {
+    timeout: 30_000,
+  });
 
-  const listings: Array<Listing> = [];
-  const cards = await page.$$('div[data-testid^="listing-card"]');
+  const cards: Array<Listing> = await page.$$eval(
+    listingsHTMLContainer,
+    (listingsHTML: any[]) => {
+      return listingsHTML.map((listingHTML) => {
+        const listingDetailsArr = listingHTML.innerText
+          .trim()
+          .split("\n")
+          .filter((item: string) => item.trim() !== "");
 
-  for (const card of cards) {
-    const paragraphContents = await card.$$eval("p", (paragraphs: any[]) =>
-      paragraphs.map((p) => p.textContent)
-    );
+        const thirdItemIsCarousellProtect =
+          listingDetailsArr[2] === "Protection" ||
+          listingDetailsArr[2] === "InstantBuy";
 
-    const convertCarousellSincePostedToDays = (rawRecentness: string) => {
-      const unitToDays: { [key: string]: number } = {
-        day: 1,
-        days: 1,
-        month: 30,
-        months: 30,
-      };
+        const lastItemIsLikes =
+          listingDetailsArr[listingDetailsArr.length - 1].replace(/\D/g, "") !==
+          "";
 
-      const splitRecentness = rawRecentness.split(" ");
-      const quantity = parseInt(splitRecentness[0]);
-      const unit = splitRecentness[1];
+        const convertPriceToFloat = (paragraphContent: string) => {
+          if (paragraphContent) {
+            return parseFloat(paragraphContent.replace(/\D/g, ""));
+          }
+          return 0;
+        };
 
-      return quantity * (unitToDays[unit] || 1);
-    };
+        const carousellTimestampToTime = (strTimestamp: string) => {};
 
-    const isThirdTag = (thirdParagraphContent: string | null) => {
-      return (
-        thirdParagraphContent === "Protection" ||
-        thirdParagraphContent === "InstantBuy"
-      );
-    };
+        const getTags = (): Array<string> => {
+          const condition = thirdItemIsCarousellProtect
+            ? listingDetailsArr[5]
+            : listingDetailsArr[4];
 
-    const convertPriceToFloat = (paragraphContent: string | null) => {
-      if (paragraphContent) {
-        return parseFloat(paragraphContent.replace(/\D/g, ""));
-      }
-      return 0;
-    };
+          const possibleFreeShippingTag = lastItemIsLikes
+            ? listingDetailsArr[listingDetailsArr.length - 2]
+            : listingDetailsArr[listingDetailsArr.length - 1];
 
-    const getTags = (
-      paragraphContents: Array<string | null>
-    ): Array<string> => {
-      const tags: Array<string> = [];
-      for (const paragraphContent of paragraphContents) {
-        paragraphContent ? tags.push(paragraphContent) : null;
-      }
-      return tags;
-    };
+          const re = [
+            thirdItemIsCarousellProtect ? listingDetailsArr[2] : null,
+            condition,
+            possibleFreeShippingTag === condition
+              ? null
+              : possibleFreeShippingTag,
+          ];
 
-    const listing: Listing = {
-      sellerName: paragraphContents[0] ? paragraphContents[0] : undefined,
-      daysSincePosted: paragraphContents[1]
-        ? convertCarousellSincePostedToDays(paragraphContents[1])
-        : undefined,
-      tags: isThirdTag(paragraphContents[2])
-        ? getTags([
-            paragraphContents[2],
-            paragraphContents[paragraphContents.length - 2],
-            paragraphContents[paragraphContents.length - 1],
-          ])
-        : getTags([
-            paragraphContents[paragraphContents.length - 2],
-            paragraphContents[paragraphContents.length - 1],
-          ]),
-      name: isThirdTag(paragraphContents[2])
-        ? paragraphContents[3] ?? "Err"
-        : paragraphContents[2] ?? "Err",
-      price: isThirdTag(paragraphContents[2])
-        ? convertPriceToFloat(paragraphContents[4])
-        : convertPriceToFloat(paragraphContents[3]),
-    };
+          return re.filter((item) => item !== null);
+        };
 
-    listings.push(listing);
-  }
+        const listing: Listing = {
+          name: thirdItemIsCarousellProtect
+            ? listingDetailsArr[3] ?? "Err"
+            : listingDetailsArr[2] ?? "Err",
+          price: thirdItemIsCarousellProtect
+            ? convertPriceToFloat(listingDetailsArr[4])
+            : convertPriceToFloat(listingDetailsArr[3]),
+          tags: getTags(),
+          sellerName: listingDetailsArr[0],
+          timeStamp: listingDetailsArr[1],
+          likes: lastItemIsLikes
+            ? listingDetailsArr[listingDetailsArr.length - 1]
+            : undefined,
+        };
+
+        return listing;
+      });
+    }
+  );
 
   await browser.close();
-  return listings;
+  return cards;
 };
 
 export default carousellScraper;
