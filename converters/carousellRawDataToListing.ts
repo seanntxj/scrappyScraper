@@ -1,4 +1,4 @@
-import { Listing } from "./types";
+import { Listing } from "../types";
 
 const carousellRawDataToListings = (rawData: Array<string>): Array<Listing> => {
   return rawData.map((listingDetailsArr) => {

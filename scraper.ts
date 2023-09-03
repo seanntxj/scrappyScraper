@@ -1,4 +1,4 @@
-const puppeteer = require("puppeteer");
+import puppeteer from "puppeteer";
 
 /**
  * Scrapes a webpage for all listings from the link given
