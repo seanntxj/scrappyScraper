@@ -67,9 +67,9 @@ const carousellRawDataToListings = (
       const breakpoint = rawlink.indexOf("?t-id=");
       if (breakpoint !== -1) {
         const modifiedUrl = rawlink.substring(0, breakpoint);
-        return `carousell.com.${urlSuffix}${modifiedUrl}`;
+        return `https://www.carousell.com.${urlSuffix}${modifiedUrl}`;
       } else {
-        return `carousell.com.${urlSuffix}${rawlink}`;
+        return `https://www.carousell.com.${urlSuffix}${rawlink}`;
       }
     };
 
