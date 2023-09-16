@@ -16,8 +16,7 @@ const getSeenListings = () => {
   }
 };
 
-(async () => {
-
+export const scrapePhones = async () => { 
   const name = 'iPhone 14 Pro';
   const region = 'my';
   const minPrice = 3200;
@@ -41,5 +40,10 @@ const getSeenListings = () => {
     saveSeenListing(listing.link);
   })
 
-  console.log(newFilteredListings);
+  return newFilteredListings;
+}
+
+(async () => {
+  const result = await scrapePhones();
+  console.log(result)
 })();
