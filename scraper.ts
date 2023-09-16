@@ -6,7 +6,7 @@ import puppeteer from "puppeteer";
  * Example: https://www.carousell.com.my/search/iPhone%2014%20Pro?addRecent=false&canChangeKeyword=false&includeSuggestions=false&searchId=2Ehwhj&sort_by=3
  * @param containerForListings The HTML element which contains a SINGLE listing.
  * Example for Carousell & Mudah: 'div[data-testid^="listing"]'
- * @returns All listing items seen from the search result
+ * @returns An array of all the text that can be found for each container of a listing, with any href links appended at the end
  */
 const scraper = async (
   link: string,
@@ -25,10 +25,15 @@ const scraper = async (
     containerForListings,
     (listingsHTML: any[]) => {
       return listingsHTML.map((listingHTML) => {
-        return listingHTML.innerText
+        const link = Array.from(listingHTML.querySelectorAll("a[href]"))
+          .map((a: any) => a.getAttribute("href"))
+          .join("\n");
+        const text = listingHTML.innerText
           .trim()
           .split("\n")
           .filter((item: string) => item.trim() !== "");
+        text.push(link);
+        return text;
       });
     }
   );

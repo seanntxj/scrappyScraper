@@ -1,6 +1,7 @@
 export type Listing = {
   name: string;
   price: number;
+  link: string;
   condition?: string;
   platformProtection?: boolean;
   freeShipping?: boolean;

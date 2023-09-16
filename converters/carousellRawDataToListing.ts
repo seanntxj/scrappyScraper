@@ -1,15 +1,22 @@
 import { Listing } from "../types";
 
-const carousellRawDataToListings = (rawData: Array<string>): Array<Listing> => {
+/**
+ * Formats the raw text given from the scraper into a Listing object when scraping Carousell
+ * @param rawData The raw array of strings given from the scraper
+ * @param urlSuffix The suffix of the region being scraped, (e.g. 'my', 'sg', etc)
+ * @returns An array of the listings put into the proper Listing object
+ */
+const carousellRawDataToListings = (
+  rawData: Array<string>,
+  urlSuffix: string
+): Array<Listing> => {
   return rawData.map((listingDetailsArr) => {
-    console.log(listingDetailsArr);
-
     const thirdItemIsCarousellProtect =
       listingDetailsArr[2] === "Protection" ||
       listingDetailsArr[2] === "InstantBuy";
 
     const lastItemIsLikes =
-      listingDetailsArr[listingDetailsArr.length - 1].replace(/\D/g, "") !== "";
+      listingDetailsArr[listingDetailsArr.length - 2].replace(/\D/g, "") !== "";
 
     const convertPriceToFloat = (paragraphContent: string) => {
       if (paragraphContent) {
@@ -49,10 +56,24 @@ const carousellRawDataToListings = (rawData: Array<string>): Array<Listing> => {
 
     const freeShipping = (): boolean => {
       const possibleFreeShippingTag = lastItemIsLikes
-        ? listingDetailsArr[listingDetailsArr.length - 2]
-        : listingDetailsArr[listingDetailsArr.length - 1];
+        ? listingDetailsArr[listingDetailsArr.length - 3]
+        : listingDetailsArr[listingDetailsArr.length - 2];
       return possibleFreeShippingTag !== condition;
     };
+
+    const link = () => {
+      const rawlink =
+        listingDetailsArr[listingDetailsArr.length - 1].split("\n").pop() || "";
+      const breakpoint = rawlink.indexOf("&t-referrer_browse_type");
+      if (breakpoint !== -1) {
+        const modifiedUrl = rawlink.substring(0, breakpoint);
+        return `carousell.com.${urlSuffix}${modifiedUrl}`;
+      } else {
+        // The '&t-referrer_browse_type' parameter is not present in the URL.
+        return `carousell.com.${urlSuffix}${rawlink}`;
+      }
+    };
+
     const listing: Listing = {
       name: thirdItemIsCarousellProtect
         ? listingDetailsArr[3]
@@ -69,8 +90,9 @@ const carousellRawDataToListings = (rawData: Array<string>): Array<Listing> => {
       sellerName: listingDetailsArr[0],
       timeStamp: listingDetailsArr[1],
       likes: lastItemIsLikes
-        ? parseInt(listingDetailsArr[listingDetailsArr.length - 1], 10) ?? 0
+        ? parseInt(listingDetailsArr[listingDetailsArr.length - 2], 10) ?? 0
         : 0,
+      link: link(),
     };
 
     return listing;
