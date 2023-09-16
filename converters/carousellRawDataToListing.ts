@@ -64,12 +64,11 @@ const carousellRawDataToListings = (
     const link = () => {
       const rawlink =
         listingDetailsArr[listingDetailsArr.length - 1].split("\n").pop() || "";
-      const breakpoint = rawlink.indexOf("&t-referrer_browse_type");
+      const breakpoint = rawlink.indexOf("?t-id=");
       if (breakpoint !== -1) {
         const modifiedUrl = rawlink.substring(0, breakpoint);
         return `carousell.com.${urlSuffix}${modifiedUrl}`;
       } else {
-        // The '&t-referrer_browse_type' parameter is not present in the URL.
         return `carousell.com.${urlSuffix}${rawlink}`;
       }
     };
