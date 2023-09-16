@@ -1,6 +1,20 @@
 import scraper from "./scraper";
 import carousellRawDataToListings from "./converters/carousellRawDataToListing";
 import { filterByKeywords, filterByPrice, filterListings } from "./filters";
+import fs from 'fs';
+
+const saveSeenListing = (url: string) => {
+  fs.appendFileSync('seenListings.txt', url + '\n');
+};
+
+const getSeenListings = () => {
+  try {
+    const seenListings = fs.readFileSync('seenListings.txt', 'utf-8').split('\n');
+    return seenListings.filter(url => url.trim() !== ''); // Remove empty lines
+  } catch (error) {
+    return [];
+  }
+};
 
 (async () => {
 
@@ -19,6 +33,13 @@ import { filterByKeywords, filterByPrice, filterListings } from "./filters";
   const organisedCarousellListings = carousellRawDataToListings(rawCarousellListings, region);
 
   const filteredCarousellListings = filterListings(organisedCarousellListings, [filterByPrice(minPrice, maxPrice), filterByKeywords(keywords, blacklist)])
+ 
+  const seenListings = getSeenListings();
+  const newFilteredListings = filteredCarousellListings.filter(listing => !seenListings.includes(listing.link));
 
-  console.log(filteredCarousellListings);
+  newFilteredListings.forEach((listing) => {
+    saveSeenListing(listing.link);
+  })
+
+  console.log(newFilteredListings);
 })();
