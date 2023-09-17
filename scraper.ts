@@ -11,7 +11,7 @@ import puppeteer from "puppeteer";
 const scraper = async (
   link: string,
   containerForListings: string
-): Promise<Array<string>> => {
+): Promise<Array<Array<string>>> => {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
   await page.goto(link);
@@ -21,7 +21,7 @@ const scraper = async (
 
   // For every instance of the div found with the listing data-testid tag, do this
   // Every returned object is then concatinated into an array
-  const cards: Array<string> = await page.$$eval(
+  const cards: Array<Array<string>> = await page.$$eval(
     containerForListings,
     (listingsHTML: any[]) => {
       return listingsHTML.map((listingHTML) => {
