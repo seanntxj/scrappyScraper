@@ -7,7 +7,7 @@ import { Listing } from "../types";
  * @returns An array of the listings put into the proper Listing object
  */
 const carousellRawDataToListings = (
-  rawData: Array<string>,
+  rawData: Array<Array<string>>,
   urlSuffix: string
 ): Array<Listing> => {
   return rawData.map((listingDetailsArr) => {
