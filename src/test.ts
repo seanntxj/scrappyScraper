@@ -59,7 +59,7 @@ export const scrapeMudahForPhones = async () => {
   const name = "iPhone 14 Pro";
   const region = "penang";
   const minPrice = 3000;
-  const maxPrice = 4000;
+  const maxPrice = 3700;
   const keywords = ["iPhone", "14", "Pro"];
   const blacklist = ["13", "12", "11", "insurance", "s22", "s23"];
 
@@ -68,13 +68,10 @@ export const scrapeMudahForPhones = async () => {
     'div[data-testid^="listing"]'
   );
 
-  console.log(rawMudahListings);
-
   const organisedMudahListings = mudahRawDataToListings(
     rawMudahListings,
   );
 
-  console.log(organisedMudahListings);
 
   const filteredCarousellListings = filterListings(organisedMudahListings, [
     filterByPrice(minPrice, maxPrice),
@@ -82,7 +79,6 @@ export const scrapeMudahForPhones = async () => {
     filterByElaspedTime(60*60*24*14),
   ]);
 
-  console.log(filteredCarousellListings);
 
   const seenListings = getSeenListings();
   const newFilteredListings = filteredCarousellListings.filter(
@@ -96,7 +92,7 @@ export const scrapeMudahForPhones = async () => {
   return newFilteredListings;
 };
 
-(async () => {
-  const result = await scrapeMudahForPhones();
-  console.log(result);
-})();
+// (async () => {
+//   const result = await scrapeMudahForPhones();
+//   console.log(result);
+// })();

@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { scrapePhones } from "./test";
+import { scrapeCarousellForPhones, scrapeMudahForPhones } from "./test";
 
 const app = express();
 const port = 3000;
@@ -9,10 +9,11 @@ app.get(
   async (req: Request, res: Response) => {
 
     console.log("Got request to scrape...");
-    const result = await scrapePhones();
+    const result = await scrapeCarousellForPhones();
+    const result2 = await scrapeMudahForPhones();
     console.log("Requested completed");
 
-    res.send(result);
+    res.send([...result, ...result2]);
   }
 );
 

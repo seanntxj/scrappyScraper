@@ -130,3 +130,6 @@ dist
 .pnp.*
 
 .txt
+
+dist/
+prod/

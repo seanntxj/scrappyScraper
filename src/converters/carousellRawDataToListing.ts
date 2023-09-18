@@ -39,8 +39,8 @@ const carousellRawDataToListings = (
         hour: 3600,
         day: 86400,
         week: 604800,
-        month: 9999999,
-        year: 99999999,
+        month: 2628002,
+        year: 31557600,
       };
 
       if (!isNaN(value) && unitToSeconds[unit]) {
