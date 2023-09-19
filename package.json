@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && electron-builder",
-    "test": "tsx test.ts"
+    "test": "tsx src/test.ts"
   },
   "keywords": [],
   "license": "ISC",
@@ -41,11 +41,11 @@
         {
           "target": "default",
           "arch": [
-            "x64",
             "arm64"
           ]
         }
-      ]
+      ],
+      "icon": "icon/icon.icns" 
     },
     "win": {
       "target": "nsis",

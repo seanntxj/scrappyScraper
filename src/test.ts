@@ -93,6 +93,6 @@ export const scrapeMudahForPhones = async () => {
 };
 
 // (async () => {
-//   const result = await scrapeMudahForPhones();
+//   const result = await scrapeCarousellForPhones();
 //   console.log(result);
 // })();

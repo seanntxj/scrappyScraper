@@ -11,6 +11,10 @@ const carousellRawDataToListings = (
   urlSuffix: string
 ): Array<Listing> => {
   return rawData.map((listingDetailsArr) => {
+    if (listingDetailsArr.length === 0 || listingDetailsArr === undefined || listingDetailsArr === null ) {
+      throw new Error(`Problem data: ${rawData}`)
+    }
+
     const thirdItemIsCarousellProtect =
       listingDetailsArr[2] === "Protection" ||
       listingDetailsArr[2] === "InstantBuy";

@@ -130,6 +130,6 @@ dist
 .pnp.*
 
 .txt
-
 dist/
 prod/
+.DS_Store
