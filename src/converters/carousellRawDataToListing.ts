@@ -7,99 +7,91 @@ import { Listing } from "../types";
  * @returns An array of the listings put into the proper Listing object
  */
 const carousellRawDataToListings = (
-  rawData: Array<Array<string>>,
+  listingDetailsArr: Array<string>,
   urlSuffix: string
-): Array<Listing> => {
-  return rawData.map((listingDetailsArr) => {
-    if (listingDetailsArr.length === 0 || listingDetailsArr === undefined || listingDetailsArr === null ) {
-      throw new Error(`Problem data: ${rawData}`)
+): Listing => {
+  const thirdItemIsCarousellProtect =
+    listingDetailsArr[2] === "Protection" ||
+    listingDetailsArr[2] === "InstantBuy";
+
+  const lastItemIsLikes =
+    listingDetailsArr[listingDetailsArr.length - 2].replace(/\D/g, "") !== "";
+
+  const convertPriceToFloat = (paragraphContent: string) => {
+    if (paragraphContent) {
+      return parseFloat(paragraphContent.replace(/\D/g, ""));
+    }
+    return 0;
+  };
+
+  const carousellTimeToSecondsElasped = (timeString: string): number => {
+    const timeParts = timeString.split(" ");
+    const value = parseInt(timeParts[0]);
+    let unit = timeParts[1].toLowerCase();
+    if (unit.charAt(unit.length - 1) === "s") {
+      unit = unit.slice(0, unit.length - 1);
     }
 
-    const thirdItemIsCarousellProtect =
-      listingDetailsArr[2] === "Protection" ||
-      listingDetailsArr[2] === "InstantBuy";
-
-    const lastItemIsLikes =
-      listingDetailsArr[listingDetailsArr.length - 2].replace(/\D/g, "") !== "";
-
-    const convertPriceToFloat = (paragraphContent: string) => {
-      if (paragraphContent) {
-        return parseFloat(paragraphContent.replace(/\D/g, ""));
-      }
-      return 0;
+    const unitToSeconds: Record<string, number> = {
+      second: 1,
+      minute: 60,
+      hour: 3600,
+      day: 86400,
+      week: 604800,
+      month: 2628002,
+      year: 31557600,
     };
 
-    const carousellTimeToSecondsElasped = (timeString: string): number => {
-      const timeParts = timeString.split(" ");
-      const value = parseInt(timeParts[0]);
-      let unit = timeParts[1].toLowerCase();
-      if (unit.charAt(unit.length - 1) === "s") {
-        unit = unit.slice(0, unit.length - 1);
-      }
+    if (!isNaN(value) && unitToSeconds[unit]) {
+      return value * unitToSeconds[unit];
+    }
 
-      const unitToSeconds: Record<string, number> = {
-        second: 1,
-        minute: 60,
-        hour: 3600,
-        day: 86400,
-        week: 604800,
-        month: 2628002,
-        year: 31557600,
-      };
+    throw new Error("Invalid time string");
+  };
 
-      if (!isNaN(value) && unitToSeconds[unit]) {
-        return value * unitToSeconds[unit];
-      }
+  const condition = thirdItemIsCarousellProtect
+    ? listingDetailsArr[5]
+    : listingDetailsArr[4];
 
-      throw new Error("Invalid time string");
-    };
+  const freeShipping = (): boolean => {
+    const possibleFreeShippingTag = lastItemIsLikes
+      ? listingDetailsArr[listingDetailsArr.length - 3]
+      : listingDetailsArr[listingDetailsArr.length - 2];
+    return possibleFreeShippingTag !== condition;
+  };
 
-    const condition = thirdItemIsCarousellProtect
-      ? listingDetailsArr[5]
-      : listingDetailsArr[4];
+  const link = () => {
+    const rawlink =
+      listingDetailsArr[listingDetailsArr.length - 1].split("\n").pop() || "";
+    const breakpoint = rawlink.indexOf("?t-id=");
+    if (breakpoint !== -1) {
+      const modifiedUrl = rawlink.substring(0, breakpoint);
+      return `https://www.carousell.com.${urlSuffix}${modifiedUrl}`;
+    } else {
+      return `https://www.carousell.com.${urlSuffix}${rawlink}`;
+    }
+  };
 
-    const freeShipping = (): boolean => {
-      const possibleFreeShippingTag = lastItemIsLikes
-        ? listingDetailsArr[listingDetailsArr.length - 3]
-        : listingDetailsArr[listingDetailsArr.length - 2];
-      return possibleFreeShippingTag !== condition;
-    };
+  const listing: Listing = {
+    name: thirdItemIsCarousellProtect
+      ? listingDetailsArr[3]
+      : listingDetailsArr[2],
+    price: thirdItemIsCarousellProtect
+      ? convertPriceToFloat(listingDetailsArr[4])
+      : convertPriceToFloat(listingDetailsArr[3]),
+    timeSincePostedSeconds: carousellTimeToSecondsElasped(listingDetailsArr[1]),
+    condition: condition,
+    platformProtection: thirdItemIsCarousellProtect,
+    freeShipping: freeShipping(),
+    sellerName: listingDetailsArr[0],
+    timeStamp: listingDetailsArr[1],
+    likes: lastItemIsLikes
+      ? parseInt(listingDetailsArr[listingDetailsArr.length - 2], 10) ?? 0
+      : 0,
+    link: link(),
+  };
 
-    const link = () => {
-      const rawlink =
-        listingDetailsArr[listingDetailsArr.length - 1].split("\n").pop() || "";
-      const breakpoint = rawlink.indexOf("?t-id=");
-      if (breakpoint !== -1) {
-        const modifiedUrl = rawlink.substring(0, breakpoint);
-        return `https://www.carousell.com.${urlSuffix}${modifiedUrl}`;
-      } else {
-        return `https://www.carousell.com.${urlSuffix}${rawlink}`;
-      }
-    };
-
-    const listing: Listing = {
-      name: thirdItemIsCarousellProtect
-        ? listingDetailsArr[3]
-        : listingDetailsArr[2],
-      price: thirdItemIsCarousellProtect
-        ? convertPriceToFloat(listingDetailsArr[4])
-        : convertPriceToFloat(listingDetailsArr[3]),
-      timeSincePostedSeconds: carousellTimeToSecondsElasped(
-        listingDetailsArr[1]
-      ),
-      condition: condition,
-      platformProtection: thirdItemIsCarousellProtect,
-      freeShipping: freeShipping(),
-      sellerName: listingDetailsArr[0],
-      timeStamp: listingDetailsArr[1],
-      likes: lastItemIsLikes
-        ? parseInt(listingDetailsArr[listingDetailsArr.length - 2], 10) ?? 0
-        : 0,
-      link: link(),
-    };
-
-    return listing;
-  });
+  return listing;
 };
 
 export default carousellRawDataToListings;

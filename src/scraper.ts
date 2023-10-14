@@ -8,7 +8,7 @@ import puppeteer from "puppeteer";
  * Example for Carousell & Mudah: 'div[data-testid^="listing"]'
  * @returns An array of all the text that can be found for each container of a listing, with any href links appended at the end
  */
-const scraper = async (
+export const specificScraper = async (
   link: string,
   containerForListings: string
 ): Promise<Array<Array<string>>> => {
@@ -42,4 +42,24 @@ const scraper = async (
   return cards;
 };
 
-export default scraper;
+export const genericScraper = async (site: string): Promise<string> => {
+  const browser = await puppeteer.launch({ headless: "new" });
+
+  const page = await browser.newPage();
+  await page.goto(site);
+
+  const text = await page.evaluate(() => {
+    const elements = document.querySelectorAll("script, style");
+    elements.forEach((element) => element.remove());
+    
+    const textContent = document.body.innerText;
+    
+    // Remove special characters using regular expressions
+    const cleanText = textContent.replace(/[^\w\s]/g, '');
+    
+    return cleanText;
+  });
+
+  await browser.close();
+  return text;
+};
