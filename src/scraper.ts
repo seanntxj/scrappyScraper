@@ -42,11 +42,16 @@ export const specificScraper = async (
   return cards;
 };
 
-export const genericScraper = async (site: string): Promise<string> => {
+/**
+ * Grabs cleaned text from a website
+ * @param link A filled search link for a product. Highly encouraged to add sort to recent for best results.
+ * @returns 
+ */
+export const genericScraper = async (link: string): Promise<string> => {
   const browser = await puppeteer.launch({ headless: "new" });
 
   const page = await browser.newPage();
-  await page.goto(site);
+  await page.goto(link);
 
   const text = await page.evaluate(() => {
     const elements = document.querySelectorAll("script, style");

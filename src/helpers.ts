@@ -12,7 +12,8 @@ export function removeTextAfterSubtext(baseString: string, subtexts: string[]): 
     const minIndex = Math.min(...indices);
     const foundSubtext = subtexts.find((subtext) => baseString.indexOf(subtext) === minIndex);
     if (foundSubtext) {
-      return baseString.substring(0, minIndex + foundSubtext.length);
+      const endIndex = minIndex + foundSubtext.length;
+      return baseString.substring(0, endIndex);
     }
   }
 
@@ -26,7 +27,8 @@ export function removeTextBeforeSubtext(baseString: string, subtexts: string[]):
     const maxIndex = Math.max(...indices);
     const foundSubtext = subtexts.find((subtext) => baseString.indexOf(subtext) === maxIndex);
     if (foundSubtext) {
-      return baseString.substring(maxIndex);
+      const startIndex = maxIndex + foundSubtext.length;
+      return baseString.substring(startIndex);
     }
   }
 

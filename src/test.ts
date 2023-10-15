@@ -5,6 +5,7 @@ import fs from "fs";
 import mudahRawDataToListings from "./converters/mudahRawDataToListing";
 import { rawListingToStructuredListing } from './langchain';
 import { removeTextAfterSubtext, removeTextBeforeSubtext } from './helpers';
+import { LangchainListingSchema } from './types';
 
 
 const saveSeenListing = (url: string) => {
@@ -97,10 +98,12 @@ export const scrapeMudahForPhones = async () => {
 };
 
 (async () => {
-  const x = await genericScraper("https://www.carousell.com.my/search/iphone%2015%20pro?addRecent=true&canChangeKeyword=true")
+  // const x = await genericScraper("https://www.carousell.com.my/search/iphone%2015%20pro?addRecent=true&canChangeKeyword=true")
   // const x = await genericScraper("https://www.carousell.com.my/search/ifi%20zen%20dac?addRecent=true&canChangeKeyword=true&includeSuggestions=true&searchId=fT4e8E")
-  const z = removeTextBeforeSubtext(removeTextAfterSubtext(x, ['Top searches']), ['Advertisement'])
-  console.log(z);
-  const y = await rawListingToStructuredListing(x);
+  const x = await genericScraper("https://www.mudah.my/malaysia/all?q=ifi")
+  const m = removeTextAfterSubtext(removeTextBeforeSubtext(x, ["SORT"]), ["Advertisement"])
+  // const z = removeTextBeforeSubtext(removeTextAfterSubtext(x, ['Top searches']), ['Advertisement'])
+  console.log(m);
+  const y = await rawListingToStructuredListing(m, LangchainListingSchema);
   console.log(y);
 })();
